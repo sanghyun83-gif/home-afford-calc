@@ -24,6 +24,9 @@ export const metadata: Metadata = {
     description: "Calculate how much house you can afford based on income, down payment, and DTI ratio.",
     type: "website",
   },
+  other: {
+    "google-site-verification": "qlPMVO_Hb-be3_hFHNT9SBbsHO-b_wCOfWfLmTb4EQc",
+  },
 };
 
 export default function RootLayout({
