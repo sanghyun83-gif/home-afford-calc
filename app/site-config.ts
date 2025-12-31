@@ -14,7 +14,7 @@ export const SITE = {
     tagline: "Free 2025 Housing Calculator",
     description: "Calculate how much house you can afford based on your income. See down payment, DTI ratio, monthly payments, and closing costs with 2025 loan limits.",
     year: 2025,
-    baseUrl: "https://home-afford-calc.vercel.app",
+    baseUrl: "https://home-afford.mysmartcalculators.com",
 };
 
 // ============================================
@@ -208,7 +208,7 @@ export function calculateAffordability(
 ): AffordabilityResult {
     const monthlyIncome = annualIncome / 12;
     const maxHousingPayment = monthlyIncome * (targetDTI / 100);
-    
+
     // Monthly interest rate
     const monthlyRate = interestRate / 100 / 12;
     const numPayments = loanTermYears * 12;
@@ -221,18 +221,18 @@ export function calculateAffordability(
     for (let i = 0; i < 100 && !converged; i++) {
         const downPayment = estimate * (downPaymentPercent / 100);
         const loanAmount = estimate - downPayment;
-        
+
         // Calculate P&I
-        const pi = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
-                   (Math.pow(1 + monthlyRate, numPayments) - 1);
-        
+        const pi = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+            (Math.pow(1 + monthlyRate, numPayments) - 1);
+
         // Calculate other costs
         const monthlyTax = (estimate * propertyTaxRate / 100) / 12;
         const monthlyIns = (estimate * homeInsuranceRate / 100) / 12;
         const monthlyPMI = downPaymentPercent < 20 ? (loanAmount * 0.007) / 12 : 0;
-        
+
         const totalPayment = pi + monthlyTax + monthlyIns + monthlyPMI + hoaFees;
-        
+
         if (Math.abs(totalPayment - maxHousingPayment) < 10) {
             converged = true;
             maxHomePrice = estimate;
@@ -245,22 +245,22 @@ export function calculateAffordability(
 
     const downPayment = maxHomePrice * (downPaymentPercent / 100);
     const loanAmount = maxHomePrice - downPayment;
-    
-    const pi = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
-               (Math.pow(1 + monthlyRate, numPayments) - 1);
-    
+
+    const pi = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+        (Math.pow(1 + monthlyRate, numPayments) - 1);
+
     const monthlyTax = (maxHomePrice * propertyTaxRate / 100) / 12;
     const monthlyIns = (maxHomePrice * homeInsuranceRate / 100) / 12;
     const monthlyPMI = downPaymentPercent < 20 ? (loanAmount * 0.007) / 12 : 0;
-    
+
     const totalPayment = pi + monthlyTax + monthlyIns + monthlyPMI + hoaFees;
-    
+
     const frontEndDTI = (totalPayment / monthlyIncome) * 100;
     const backEndDTI = ((totalPayment + monthlyDebts) / monthlyIncome) * 100;
-    
+
     const { conformingLoanLimits } = HOUSING_CONSTANTS;
     const isConforming = loanAmount <= conformingLoanLimits.standard;
-    
+
     let loanType = 'Conventional';
     if (loanAmount > conformingLoanLimits.highCost) loanType = 'Jumbo';
     else if (loanAmount > conformingLoanLimits.standard) loanType = 'High-Balance';
@@ -310,7 +310,7 @@ export function calculateDownPayment(homePrice: number): DownPaymentResult {
         const loanAmount = homePrice - amount;
         const requiresPMI = percent < 20;
         const monthlyPMI = requiresPMI ? (loanAmount * 0.007) / 12 : 0;
-        
+
         return {
             percent,
             amount: Math.round(amount),
@@ -356,23 +356,23 @@ export function calculateDTI(
     otherMonthlyDebts: number
 ): DTIResult {
     const monthlyIncome = annualIncome / 12;
-    
+
     const frontEndDTI = (housingPayment / monthlyIncome) * 100;
     const backEndDTI = ((housingPayment + otherMonthlyDebts) / monthlyIncome) * 100;
-    
+
     const { dtiRules } = HOUSING_CONSTANTS;
-    
+
     let frontEndStatus: 'good' | 'warning' | 'high' = 'good';
     if (frontEndDTI > dtiRules.conventional.frontEnd) frontEndStatus = 'warning';
     if (frontEndDTI > 33) frontEndStatus = 'high';
-    
+
     let backEndStatus: 'good' | 'warning' | 'high' = 'good';
     if (backEndDTI > dtiRules.conventional.backEnd) backEndStatus = 'warning';
     if (backEndDTI > 43) backEndStatus = 'high';
-    
+
     const maxHousingPayment28 = monthlyIncome * 0.28;
     const maxTotalDebt36 = monthlyIncome * 0.36;
-    
+
     let recommendation = 'You have a healthy DTI ratio. You should qualify for most mortgage programs.';
     if (backEndDTI > 43) {
         recommendation = 'Your DTI is high. Consider paying down debts before applying for a mortgage.';
@@ -422,17 +422,17 @@ export function calculateMonthlyPayment(
 ): MonthlyPaymentResult {
     const downPayment = homePrice * (downPaymentPercent / 100);
     const loanAmount = homePrice - downPayment;
-    
+
     const monthlyRate = interestRate / 100 / 12;
     const numPayments = loanTermYears * 12;
-    
-    const monthlyPI = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / 
-                      (Math.pow(1 + monthlyRate, numPayments) - 1);
-    
+
+    const monthlyPI = loanAmount * (monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
+        (Math.pow(1 + monthlyRate, numPayments) - 1);
+
     const monthlyTax = (homePrice * propertyTaxRate / 100) / 12;
     const monthlyInsurance = (homePrice * homeInsuranceRate / 100) / 12;
     const monthlyPMI = downPaymentPercent < 20 ? (loanAmount * 0.007) / 12 : 0;
-    
+
     const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + monthlyPMI + hoaFees;
     const totalInterest = (monthlyPI * numPayments) - loanAmount;
     const totalCost = homePrice + totalInterest + (monthlyTax + monthlyInsurance + monthlyPMI + hoaFees) * numPayments;
@@ -477,7 +477,7 @@ export function calculateClosingCosts(
 ): ClosingCostsResult {
     const downPayment = homePrice * (downPaymentPercent / 100);
     const loanAmount = homePrice - downPayment;
-    
+
     // Individual closing cost estimates
     const loanOriginationFee = loanAmount * 0.01; // 1% of loan
     const appraisalFee = 500;
@@ -488,11 +488,11 @@ export function calculateClosingCosts(
     const prepaidInsurance = (homePrice * 0.0035); // 1 year homeowner's insurance
     const prepaidTaxes = (homePrice * 0.011) / 2; // 6 months property tax
     const otherFees = 500; // Misc fees
-    
-    const totalClosingCosts = loanOriginationFee + appraisalFee + creditReportFee + 
-                              titleInsurance + escrowFees + recordingFees + 
-                              prepaidInsurance + prepaidTaxes + otherFees;
-    
+
+    const totalClosingCosts = loanOriginationFee + appraisalFee + creditReportFee +
+        titleInsurance + escrowFees + recordingFees +
+        prepaidInsurance + prepaidTaxes + otherFees;
+
     const cashNeededAtClosing = downPayment + totalClosingCosts;
 
     return {
@@ -542,32 +542,32 @@ export function calculateRentVsBuy(
     const paymentResult = calculateMonthlyPayment(
         homePrice, downPaymentPercent, interestRate, 30, propertyTaxRate, homeInsuranceRate
     );
-    
+
     const monthlyMortgageTotal = paymentResult.totalMonthly;
-    
+
     // 5-year analysis
     let totalRentCost = 0;
     let currentRent = monthlyRent;
-    
+
     for (let year = 1; year <= 5; year++) {
         totalRentCost += currentRent * 12;
         currentRent *= (1 + annualRentIncrease / 100);
     }
-    
+
     const yearlyBuyCost = monthlyMortgageTotal * 12;
     const fiveYearBuyCost = yearlyBuyCost * 5;
-    
+
     // Estimate equity after 5 years (rough: appreciation + principal paydown)
     const appreciatedValue = homePrice * Math.pow(1 + annualAppreciation / 100, 5);
     const loanAmount = homePrice * (1 - downPaymentPercent / 100);
     const principalPaidDown = loanAmount * 0.08; // Rough estimate ~8% of loan in 5 years
     const fiveYearEquity = (appreciatedValue - homePrice) + principalPaidDown + (homePrice * downPaymentPercent / 100);
-    
+
     // Break-even calculation
     const monthlyDifference = monthlyMortgageTotal - monthlyRent;
-    const breakEvenYears = monthlyDifference > 0 ? 
+    const breakEvenYears = monthlyDifference > 0 ?
         Math.round((monthlyDifference * 12 * 5 + fiveYearEquity) / (fiveYearEquity / 5) * 10) / 10 : 0;
-    
+
     let recommendation: 'rent' | 'buy' | 'neutral' = 'neutral';
     if (fiveYearBuyCost - fiveYearEquity < totalRentCost * 0.9) {
         recommendation = 'buy';
